@@ -175,7 +175,7 @@
             if (this.animated) {
                 return;
             }
-            if (this.index == 5) {
+            if (this.index == this.len) {
                 this.index = 1;
             } else {
                 this.index += 1;
@@ -189,7 +189,7 @@
                 return;
             }
             if (this.index == 1) {
-                this.index = 5;
+                this.index = this.len;
             } else {
                 this.index -= 1;
             }
