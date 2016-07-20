@@ -4,148 +4,81 @@
     <meta charset="UTF-8">
     <title>焦点轮播图</title>
     <style type="text/css">
-        *{ margin: 0; padding: 0; text-decoration: none;}
-        body { padding: 20px;}
-        #container { width: 600px; height: 400px; border: 3px solid #333; overflow: hidden; position: relative;}
-        #list { width: 4200px; height: 400px; position: absolute; z-index: 1;}
-        #list img { float: left;}
-        #buttons { position: absolute; height: 10px; width: 100px; z-index: 2; bottom: 20px; left: 250px;}
-        #buttons span { cursor: pointer; float: left; border: 1px solid #fff; width: 10px; height: 10px; border-radius: 50%; background: #333; margin-right: 5px;}
-        #buttons .on {  background: orangered;}
-        .arrow { cursor: pointer; display: none; line-height: 39px; text-align: center; font-size: 36px; font-weight: bold; width: 40px; height: 40px;  position: absolute; z-index: 2; top: 180px; background-color: RGBA(0,0,0,.3); color: #fff;}
-        .arrow:hover { background-color: RGBA(0,0,0,.7);}
-        #container:hover .arrow { display: block;}
-        #prev { left: 20px;}
-        #next { right: 20px;}
-    </style>
-    <script type="text/javascript">
-
-        window.onload = function () {
-            var container = document.getElementById('container');
-            var list = document.getElementById('list');
-            var buttons = document.getElementById('buttons').getElementsByTagName('span');
-            var prev = document.getElementById('prev');
-            var next = document.getElementById('next');
-            var index = 1;
-            var len = list.children.length;
-            var animated = false;
-            var interval = 3000;
-            var timer;
-
-            function animate (offset) {
-                if (offset == 0) {
-                    return;
-                }
-                animated = true;
-                var time = 300;
-                var inteval = 10;
-                var speed = offset/(time/inteval);
-                var left = parseInt(list.style.left) + offset;
-
-                var go = function (){
-                    if ( (speed > 0 && parseInt(list.style.left) < left) || (speed < 0 && parseInt(list.style.left) > left)) {
-                        list.style.left = parseInt(list.style.left) + speed + 'px';
-                        setTimeout(go, inteval);
-                    }
-                    else {
-                        list.style.left = left + 'px';
-                        if(left>-200){
-                            list.style.left = -600 * len + 'px';
-                        }
-                        if(left<(-600 * len)) {
-                            list.style.left = '-600px';
-                        }
-                        animated = false;
-                    }
-                }
-                go();
-            }
-
-            function showButton() {
-                for (var i = 0; i < buttons.length ; i++) {
-                    if( buttons[i].className == 'on'){
-                        buttons[i].className = '';
-                        break;
-                    }
-                }
-                buttons[index - 1].className = 'on';
-            }
-
-            function play() {
-                timer = setTimeout(function () {
-                    next.onclick();
-                    play();
-                }, interval);
-            }
-            function stop() {
-                clearTimeout(timer);
-            }
-
-            next.onclick = function () {
-                if (animated) {
-                    return;
-                }
-                if (index == 5) {
-                    index = 1;
-                } else {
-                    index += 1;
-                }
-                animate(-600);
-                showButton();
-            }
-            prev.onclick = function () {
-                if (animated) {
-                    return;
-                }
-                if (index == 1) {
-                    index = 5;
-                }
-                else {
-                    index -= 1;
-                }
-                animate(600);
-                showButton();
-            }
-
-            for (var i = 0; i < buttons.length; i++) {
-                buttons[i].onclick = function () {
-                    if (animated) {
-                        return;
-                    }
-                    if(this.className == 'on') {
-                        return;
-                    }
-                    var myIndex = parseInt(this.getAttribute('index'));
-                    var offset = -600 * (myIndex - index);
-
-                    animate(offset);
-                    index = myIndex;
-                    showButton();
-                }
-            }
-
-            function init() {
-                var firstChild = list.children[0];
-                var firstCopy = firstChild.cloneNode();
-
-                var lastChild = list.children[len - 1];
-                var lastCopy = lastChild.cloneNode();
-
-                list.appendChild(firstCopy);
-                list.insertBefore(lastCopy, list.children[0]);
-
-                list.style.visibility = 'visible';
-                list.style.left = '-600px';
-
-                play();
-            }
-
-            container.onmouseover = stop;
-            container.onmouseout = play;
-
-            init();
+        * {
+            margin: 0;
+            padding: 0;
         }
-    </script>
+        a {
+            text-decoration: none;
+        }
+        body {
+            padding: 12px;
+        }
+        #container {
+            width: 600px;
+            height: 400px;
+            border: 3px solid #333;
+            overflow: hidden;
+            position: relative;
+        }
+        #list {
+            width: 4200px;
+            height: 400px;
+            position: absolute;
+            z-index: 1;
+        }
+        #list img {
+            float: left;
+        }
+        #buttons {
+            position: absolute;
+            height: 10px;
+            width: 100px;
+            z-index: 2;
+            bottom: 20px;
+            left: 250px;
+        }
+        #buttons span {
+            cursor: pointer;
+            float: left;
+            border: 1px solid #fff;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #333;
+            margin-right: 5px;
+        }
+        #buttons .on {
+            background: orangered;
+        }
+        .arrow {
+            cursor: pointer;
+            display: none;
+            line-height: 39px;
+            text-align: center;
+            font-size: 36px;
+            font-weight: bold;
+            width: 40px;
+            height: 40px;
+            position: absolute;
+            z-index: 2;
+            top: 180px;
+            background-color: RGBA(0,0,0,.3);
+            color: #fff;
+        }
+        .arrow:hover {
+            background-color: RGBA(0,0,0,.7);
+        }
+        #container:hover .arrow {
+            display: block;
+        }
+        #prev {
+            left: 20px;
+        }
+        #next {
+            right: 20px;
+        }
+    </style>
 </head>
 <body>
 
@@ -170,3 +103,172 @@
 
 </body>
 </html>
+<script>
+function Slide(elem) {
+    if (typeof elem === 'string') {
+        elem = document.getElementById(elem);
+    }
+    if (!elem) {
+        console.log('[Slide] elem undefined');
+        return;
+    }
+    this.container = elem;
+    this.list = document.getElementById('list');
+    this.buttons = document.getElementById('buttons').getElementsByTagName('span');
+    this.prevBtn = document.getElementById('prev');
+    this.nextBtn = document.getElementById('next');
+    this.index = 1;
+    this.len = list.children.length;
+    this.animated = false;
+    this.LOOP_INTERVAL = 3000;
+    this.ANIMATE_TIME = 300;
+    this.ANIMTE_INTERVAL = 10;
+
+    this.bind();
+    this.init();
+}
+Slide.prototype.bind = function () {
+    var self = this;
+    this.container.onmouseover = function () {
+        self.stop();
+    };
+    this.container.onmouseout = function () {
+        self.play();
+    };
+
+    this.nextBtn.onclick = function () {
+        self.next();
+    };
+    this.prevBtn.onclick = function () {
+        self.prev();
+    };
+
+    function onButtonClick(e) {
+        if (self.animated || this.className === 'on') {
+            return;
+        }
+        var myIndex = parseInt(this.getAttribute('index'));
+        var offset = -600 * (myIndex - self.index);
+
+        self.animate(offset);
+        self.index = myIndex;
+        self.showButton();
+    }
+
+    for (var i = 0; i < this.buttons.length; i++) {
+        this.buttons[i].onclick = onButtonClick;
+    }
+};
+
+Slide.prototype.init = function () {
+    var children = this.list.children;
+    var firstChild = children[0];
+    var firstCopy = firstChild.cloneNode();
+
+    var lastChild = children[this.len - 1];
+    var lastCopy = lastChild.cloneNode();
+
+    this.list.appendChild(firstCopy);
+    this.list.insertBefore(lastCopy, children[0]);
+
+    this.list.style.visibility = 'visible';
+    this.list.style.left = '-600px';
+
+    this.play();
+};
+
+Slide.prototype.play = function () {
+    if (this.timer) {
+        clearTimeout(this.timer);
+    }
+    var self = this;
+    this.timer = setTimeout(function () {
+        self.next();
+        self.play();
+    }, this.LOOP_INTERVAL);
+};
+
+Slide.prototype.stop = function () {
+    if (this.timer) {
+        clearTimeout(this.timer);
+        this.timer = null;
+    }
+};
+
+Slide.prototype.next = function () {
+    if (this.animated) {
+        return;
+    }
+    if (this.index == 5) {
+        this.index = 1;
+    } else {
+        this.index += 1;
+    }
+    this.animate(-600);
+    this.showButton();
+};
+
+Slide.prototype.prev = function () {
+    if (this.animated) {
+        return;
+    }
+    if (this.index == 1) {
+        this.index = 5;
+    } else {
+        this.index -= 1;
+    }
+    this.animate(600);
+    this.showButton();
+};
+
+Slide.prototype.showButton = function () {
+    for (var i = 0; i < this.buttons.length ; i++) {
+        if (this.buttons[i].className === 'on') {
+            this.buttons[i].className = '';
+            break;
+        }
+    }
+    this.buttons[this.index - 1].className = 'on';
+};
+
+Slide.prototype.getLeft = function () {
+    return parseInt(this.list.style.left);
+};
+
+Slide.prototype.animate = function (offset) {
+    if (offset === 0) {
+        return;
+    }
+    this.animated = true;
+    var runTimes = this.ANIMATE_TIME / this.ANIMTE_INTERVAL;
+    var speed = offset / runTimes;
+    var left = this.getLeft() + offset;
+    var self = this;
+    var run = function () {
+        var x = speed + self.getLeft();
+        if ((speed > 0 && x < left) || (speed < 0 && x > left)) {
+            list.style.left = parseInt(list.style.left) + speed + 'px';
+            setTimeout(run, self.ANIMTE_INTERVAL);
+        } else {
+            // 结束
+            list.style.left = left + 'px';
+
+            // 定位到最后一个
+            if (left > -200) {
+                list.style.left = -600 * self.len + 'px';
+            }
+
+            // 定位到第一个
+            if (left < (-600 * self.len)) {
+                list.style.left = '-600px';
+            }
+
+            self.animated = false;
+        }
+    };
+    run();
+};
+
+new Slide('container');
+
+</script>
