@@ -79,196 +79,195 @@
             right: 20px;
         }
     </style>
+    <script type="text/javascript">
+        function Slide(elem) {
+            if (typeof elem === 'string') {
+                elem = document.getElementById(elem);
+            }
+            if (!elem) {
+                console.log('[Slide] elem undefined');
+                return;
+            }
+            this.container = elem;
+            this.list = document.getElementById('list');
+            this.buttons = document.getElementById('buttons').getElementsByTagName('span');
+            this.prevBtn = document.getElementById('prev');
+            this.nextBtn = document.getElementById('next');
+            this.index = 1;
+            this.len = list.children.length;
+            this.animated = false;
+            this.LOOP_INTERVAL = 3000;
+            this.ANIMATE_TIME = 300;
+            this.ANIMTE_INTERVAL = 10;
+
+            this.bind();
+            this.init();
+        }
+        Slide.prototype.bind = function () {
+            var self = this;
+            this.container.onmouseover = function () {
+                self.stop();
+            };
+            this.container.onmouseout = function () {
+                self.play();
+            };
+
+            this.nextBtn.onclick = function () {
+                self.next();
+            };
+            this.prevBtn.onclick = function () {
+                self.prev();
+            };
+
+            function onButtonClick(e) {
+                if (self.animated || this.className === 'on') {
+                    return;
+                }
+                var myIndex = parseInt(this.getAttribute('index'));
+                var offset = -600 * (myIndex - self.index);
+
+                self.animate(offset);
+                self.index = myIndex;
+                self.showButton();
+            }
+
+            for (var i = 0; i < this.buttons.length; i++) {
+                this.buttons[i].onclick = onButtonClick;
+            }
+        };
+
+        Slide.prototype.init = function () {
+            var children = this.list.children;
+            var firstChild = children[0];
+            var firstCopy = firstChild.cloneNode();
+
+            var lastChild = children[this.len - 1];
+            var lastCopy = lastChild.cloneNode();
+
+            this.list.appendChild(firstCopy);
+            this.list.insertBefore(lastCopy, children[0]);
+
+            this.list.style.visibility = 'visible';
+            this.list.style.left = '-600px';
+
+            this.play();
+        };
+
+        Slide.prototype.play = function () {
+            if (this.timer) {
+                clearTimeout(this.timer);
+            }
+            var self = this;
+            this.timer = setTimeout(function () {
+                self.next();
+                self.play();
+            }, this.LOOP_INTERVAL);
+        };
+
+        Slide.prototype.stop = function () {
+            if (this.timer) {
+                clearTimeout(this.timer);
+                this.timer = null;
+            }
+        };
+
+        Slide.prototype.next = function () {
+            if (this.animated) {
+                return;
+            }
+            if (this.index == 5) {
+                this.index = 1;
+            } else {
+                this.index += 1;
+            }
+            this.animate(-600);
+            this.showButton();
+        };
+
+        Slide.prototype.prev = function () {
+            if (this.animated) {
+                return;
+            }
+            if (this.index == 1) {
+                this.index = 5;
+            } else {
+                this.index -= 1;
+            }
+            this.animate(600);
+            this.showButton();
+        };
+
+        Slide.prototype.showButton = function () {
+            for (var i = 0; i < this.buttons.length ; i++) {
+                if (this.buttons[i].className === 'on') {
+                    this.buttons[i].className = '';
+                    break;
+                }
+            }
+            this.buttons[this.index - 1].className = 'on';
+        };
+
+        Slide.prototype.getLeft = function () {
+            return parseInt(this.list.style.left);
+        };
+
+        Slide.prototype.animate = function (offset) {
+            if (offset === 0) {
+                return;
+            }
+            this.animated = true;
+            var runTimes = this.ANIMATE_TIME / this.ANIMTE_INTERVAL;
+            var speed = offset / runTimes;
+            var left = this.getLeft() + offset;
+            var self = this;
+            var run = function () {
+                var x = speed + self.getLeft();
+                if ((speed > 0 && x < left) || (speed < 0 && x > left)) {
+                    list.style.left = parseInt(list.style.left) + speed + 'px';
+                    setTimeout(run, self.ANIMTE_INTERVAL);
+                } else {
+                    // 结束
+                    list.style.left = left + 'px';
+
+                    // 定位到最后一个
+                    if (left > -200) {
+                        list.style.left = -600 * self.len + 'px';
+                    }
+
+                    // 定位到第一个
+                    if (left < (-600 * self.len)) {
+                        list.style.left = '-600px';
+                    }
+
+                    self.animated = false;
+                }
+            };
+            run();
+        };
+        window.onload = function () {
+            new Slide('container');
+        };
+
+    </script>
 </head>
 <body>
-
-<div id="container">
-    <div id="list" style="visibility: hidden;">
-        <img src="img/1.jpg" alt="1"/>
-        <img src="img/2.jpg" alt="2"/>
-        <img src="img/3.jpg" alt="3"/>
-        <img src="img/4.jpg" alt="4"/>
-        <img src="img/5.jpg" alt="5"/>
+    <div id="container">
+        <div id="list" style="visibility: hidden;">
+            <img src="img/1.jpg" alt="1"/>
+            <img src="img/2.jpg" alt="2"/>
+            <img src="img/3.jpg" alt="3"/>
+            <img src="img/4.jpg" alt="4"/>
+            <img src="img/5.jpg" alt="5"/>
+        </div>
+        <div id="buttons">
+            <span index="1" class="on"></span>
+            <span index="2"></span>
+            <span index="3"></span>
+            <span index="4"></span>
+            <span index="5"></span>
+        </div>
+        <a href="javascript:;" id="prev" class="arrow">&lt;</a>
+        <a href="javascript:;" id="next" class="arrow">&gt;</a>
     </div>
-    <div id="buttons">
-        <span index="1" class="on"></span>
-        <span index="2"></span>
-        <span index="3"></span>
-        <span index="4"></span>
-        <span index="5"></span>
-    </div>
-    <a href="javascript:;" id="prev" class="arrow">&lt;</a>
-    <a href="javascript:;" id="next" class="arrow">&gt;</a>
-</div>
-
 </body>
-<script type="text/javascript">
-function Slide(elem) {
-    if (typeof elem === 'string') {
-        elem = document.getElementById(elem);
-    }
-    if (!elem) {
-        console.log('[Slide] elem undefined');
-        return;
-    }
-    this.container = elem;
-    this.list = document.getElementById('list');
-    this.buttons = document.getElementById('buttons').getElementsByTagName('span');
-    this.prevBtn = document.getElementById('prev');
-    this.nextBtn = document.getElementById('next');
-    this.index = 1;
-    this.len = list.children.length;
-    this.animated = false;
-    this.LOOP_INTERVAL = 3000;
-    this.ANIMATE_TIME = 300;
-    this.ANIMTE_INTERVAL = 10;
-
-    this.bind();
-    this.init();
-}
-Slide.prototype.bind = function () {
-    var self = this;
-    this.container.onmouseover = function () {
-        self.stop();
-    };
-    this.container.onmouseout = function () {
-        self.play();
-    };
-
-    this.nextBtn.onclick = function () {
-        self.next();
-    };
-    this.prevBtn.onclick = function () {
-        self.prev();
-    };
-
-    function onButtonClick(e) {
-        if (self.animated || this.className === 'on') {
-            return;
-        }
-        var myIndex = parseInt(this.getAttribute('index'));
-        var offset = -600 * (myIndex - self.index);
-
-        self.animate(offset);
-        self.index = myIndex;
-        self.showButton();
-    }
-
-    for (var i = 0; i < this.buttons.length; i++) {
-        this.buttons[i].onclick = onButtonClick;
-    }
-};
-
-Slide.prototype.init = function () {
-    var children = this.list.children;
-    var firstChild = children[0];
-    var firstCopy = firstChild.cloneNode();
-
-    var lastChild = children[this.len - 1];
-    var lastCopy = lastChild.cloneNode();
-
-    this.list.appendChild(firstCopy);
-    this.list.insertBefore(lastCopy, children[0]);
-
-    this.list.style.visibility = 'visible';
-    this.list.style.left = '-600px';
-
-    this.play();
-};
-
-Slide.prototype.play = function () {
-    if (this.timer) {
-        clearTimeout(this.timer);
-    }
-    var self = this;
-    this.timer = setTimeout(function () {
-        self.next();
-        self.play();
-    }, this.LOOP_INTERVAL);
-};
-
-Slide.prototype.stop = function () {
-    if (this.timer) {
-        clearTimeout(this.timer);
-        this.timer = null;
-    }
-};
-
-Slide.prototype.next = function () {
-    if (this.animated) {
-        return;
-    }
-    if (this.index == 5) {
-        this.index = 1;
-    } else {
-        this.index += 1;
-    }
-    this.animate(-600);
-    this.showButton();
-};
-
-Slide.prototype.prev = function () {
-    if (this.animated) {
-        return;
-    }
-    if (this.index == 1) {
-        this.index = 5;
-    } else {
-        this.index -= 1;
-    }
-    this.animate(600);
-    this.showButton();
-};
-
-Slide.prototype.showButton = function () {
-    for (var i = 0; i < this.buttons.length ; i++) {
-        if (this.buttons[i].className === 'on') {
-            this.buttons[i].className = '';
-            break;
-        }
-    }
-    this.buttons[this.index - 1].className = 'on';
-};
-
-Slide.prototype.getLeft = function () {
-    return parseInt(this.list.style.left);
-};
-
-Slide.prototype.animate = function (offset) {
-    if (offset === 0) {
-        return;
-    }
-    this.animated = true;
-    var runTimes = this.ANIMATE_TIME / this.ANIMTE_INTERVAL;
-    var speed = offset / runTimes;
-    var left = this.getLeft() + offset;
-    var self = this;
-    var run = function () {
-        var x = speed + self.getLeft();
-        if ((speed > 0 && x < left) || (speed < 0 && x > left)) {
-            list.style.left = parseInt(list.style.left) + speed + 'px';
-            setTimeout(run, self.ANIMTE_INTERVAL);
-        } else {
-            // 结束
-            list.style.left = left + 'px';
-
-            // 定位到最后一个
-            if (left > -200) {
-                list.style.left = -600 * self.len + 'px';
-            }
-
-            // 定位到第一个
-            if (left < (-600 * self.len)) {
-                list.style.left = '-600px';
-            }
-
-            self.animated = false;
-        }
-    };
-    run();
-};
-
-new Slide('container');
-
-</script>
 </html>
