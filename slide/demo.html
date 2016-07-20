@@ -27,11 +27,10 @@
             var prev = document.getElementById('prev');
             var next = document.getElementById('next');
             var index = 1;
-            var len = 5;
+            var len = list.children.length;
             var animated = false;
             var interval = 3000;
             var timer;
-
 
             function animate (offset) {
                 if (offset == 0) {
@@ -88,8 +87,7 @@
                 }
                 if (index == 5) {
                     index = 1;
-                }
-                else {
+                } else {
                     index += 1;
                 }
                 animate(-600);
@@ -126,25 +124,38 @@
                 }
             }
 
+            function init() {
+                var firstChild = list.children[0];
+                var firstCopy = firstChild.cloneNode();
+
+                var lastChild = list.children[len - 1];
+                var lastCopy = lastChild.cloneNode();
+
+                list.appendChild(firstCopy);
+                list.insertBefore(lastCopy, list.children[0]);
+
+                list.style.visibility = 'visible';
+                list.style.left = '-600px';
+
+                play();
+            }
+
             container.onmouseover = stop;
             container.onmouseout = play;
 
-            play();
-
+            init();
         }
     </script>
 </head>
 <body>
 
 <div id="container">
-    <div id="list" style="left: -600px;">
-        <img src="img/5.jpg" alt="1"/>
+    <div id="list" style="visibility: hidden;">
         <img src="img/1.jpg" alt="1"/>
         <img src="img/2.jpg" alt="2"/>
         <img src="img/3.jpg" alt="3"/>
         <img src="img/4.jpg" alt="4"/>
         <img src="img/5.jpg" alt="5"/>
-        <img src="img/1.jpg" alt="5"/>
     </div>
     <div id="buttons">
         <span index="1" class="on"></span>
