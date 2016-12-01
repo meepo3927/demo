@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>布局</title>
+    <style>
+    * {
+        margin: 0;
+        padding: 0;
+    }
+    html, body { height: 100%; }
+    body {
+        background-color: #eee;
+        display: table;
+        width: 100%;
+    }
+    .main {
+        background-color: green;
+        height: 100%;
+    }
+    .footer {
+        background-color: yellow;
+        display: table-row;
+        height: 1px;
+    }
+    #add {
+        position: fixed;
+        right: 100px;
+        top: 50px;
+    }
+    </style>
+</head>
+<body>
+    <button id="add">add</button>
+    <div class="main">
+        main<br />
+    </div>
+    <div class="footer">
+        footer
+    </div>
+</body>
+</html>
+<script>
+document.querySelector('#add').onclick = function () {
+    var html = '';
+    for (var i = 0 ; i < 30; i++) {
+        html += i + '--' + Math.random();
+        html += '<br />';
+    }
+    document.querySelector('.main').innerHTML += html;
+};
+</script>
