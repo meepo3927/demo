@@ -47,7 +47,7 @@ var funInsertTopic = function(textObj) {
     }
     value = textObj.value;
     index = value.indexOf(topic);
-    if (textObj.createTextRange) {
+    if (textObj.createTextRange) { // IE
         var range = textObj.createTextRange();
         range.moveEnd("character", -1 * value.length);
         range.moveEnd("character", index + 5);
@@ -61,7 +61,7 @@ var funInsertTopic = function(textObj) {
 
 var funTextAsTopic = function(textObj, textFeildValue) {
     textObj.focus();
-    if (textObj.createTextRange) {
+    if (textObj.createTextRange) { // IE
         var caretPos = document.selection.createRange().duplicate();
         document.selection.empty();
         caretPos.text = textFeildValue;
