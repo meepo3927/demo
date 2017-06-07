@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>mplayer</title>
+    <link rel="stylesheet" href="audiojs/audio.css">
+</head>
+<body>
+    <audio src="mp3/1.mp3" preload="auto"></audio>
+</body>
+</html>
+<script src="mplayer.js"></script>
+<script src="audiojs/audio.js"></script>
+<script>
+audiojs.events.ready(function() {
+  audiojs.createAll();
+});
+</script>
