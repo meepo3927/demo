@@ -2,8 +2,11 @@
  * @描述  音乐播放器, 依赖jQuery
  * @用法  new MPlayer(elem, options);
  * options = {
- *     src: 'xxx/1.mp3'
+ *     src: 'xxx/1.mp3',
+ *     autoPlay: false,    自动播放, 默认false
+       loop: false         循环播放, 默认false     
  * }
+ * @方法  load(url) ,  加载歌曲
  */
 
 (function (name, factory) {
@@ -114,6 +117,7 @@
      * @param  {string} url
      */
     proto.load = function (url) {
+        this.options.src = url;
         this.audio.setAttribute('src', url);
     };
     /**
@@ -121,15 +125,23 @@
      */
     proto.play = function () {
         this.audio.play();
-        this.changeState('playing');
     };
     /**
      * 暂停
      */
     proto.pause = function () {
         this.audio.pause();
-        this.changeState('paused');
     };
+    /**
+     * 跳
+     */
+    proto.skipTo = function (percent) {
+        var t = this.audio.duration * percent;
+        this.audio.currentTime = t;
+    };
+    /**
+     * 销毁
+     */
     proto.dispose = function () {
         if (this.audio) {
             this.unbindHTML5();
@@ -137,6 +149,16 @@
         this.unbindEvents();
         this.$elem.html('');
         this.$elem.removeClass(holderClassName);
+    };
+    proto.delay = function (f, time) {
+        time = time || 1000;
+        var self = this;
+        var timer = setTimeout(function () {
+            f.call(self);
+        }, time);
+        return function () {
+            clearTimeout(timer);
+        };
     };
     /**
      * 初始化，生成HTML，绑定事件
@@ -163,15 +185,24 @@
     proto.bindEvents = function () {
         var self = this;
         this.$elem.on('click', '.play', function (e) {
+            if (self.status === 'init') {
+                return false;
+            }
             self.play();
         });
         this.$elem.on('click', '.pause', function (e) {
             self.pause();
         });
+        this.$elem.on('click', '.scrubber', function (e) {
+            var $ber = $(this);
+            var x = e.clientX - $ber.offset().left;
+            self.skipTo(x / $ber.width());
+        });
     };
     proto.unbindEvents = function () {
         this.$elem.off('click', '.play');
         this.$elem.off('click', '.pause');
+        this.$elem.off('click', '.scrubber');
     };
     proto.changeState = function (status) {
         if (this.status) {
@@ -212,18 +243,41 @@
         this.changeState('loading');
     };
     proto.handleCanplay = function (e) {
-        this.changeState('canplay');
+        if (this.status === 'loading') {
+            if (this.options.autoPlay) {
+                this.play();
+            }
+        }
+        this.$elem.removeClass('loading');
         this.renderDuration();
         this.renderLoaded(100);
+    };
+    proto.handlePlay = function (e) {
+        this.changeState('playing');
+    };
+    proto.handlePause = function (e) {
+        this.changeState('paused');
     };
     proto.handleTimeupdate = function (e) {
         this.renderCurrentProgress();
     };
+    proto.handleEnded = function (e) {
+        this.skipTo(0);
+        if (this.options.loop) {
+            this.delay(function () {
+                this.play();
+            }, 1000);
+        }
+    };
     proto.handleProgress = function (e) {
     };
     proto.handleError = function (e) {
-        this.changeState('error');
-        this.$errmsg.html('加载失败: ' + this.options.src);
+        if (this.options.src) {
+            this.changeState('error');
+            this.$errmsg.html('加载失败: ' + this.options.src);
+        } else {
+            this.changeState('init');
+        }
     };
     proto.handleEvent = function (e) {
         var eventName = 'handle-' + e.type.toLowerCase();
