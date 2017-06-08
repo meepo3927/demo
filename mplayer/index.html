@@ -13,9 +13,10 @@
 <script src="js/jquery-1.8.3.min.js"></script>
 <script src="js/mplayer.js"></script>
 <script>
-var src = 'mp3/1.mp3';
+var localSrc = 'mp3/1.mp3';
+var remoteSrc = 'https://dn-coding-net-production-file.qbox.me/a23a708b-4879-4ca7-b6d7-993862211449.mp3?download/1.mp3&e=1496915166&token=goE9CtaiT5YaIP6ZQ1nAafd_C1Z_H2gVP8AwuC-5:GhAeEjKjpAJMSrBGkHb56Tsw-Mw=';
 var p = new MPlayer('music', {
-	src: src,
+	src: remoteSrc,
 	autoPlay: true,
 	loop: false
 });
