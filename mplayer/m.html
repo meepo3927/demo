@@ -9,7 +9,10 @@
     <div id="music"></div>
 </body>
 </html>
-<script src="audiojs/mplayer.js"></script>
+<script src="js/jquery-1.8.3.min.js"></script>
+<script src="js/mplayer.js"></script>
 <script>
-new MPlayer('music', {});
+var p = new MPlayer('music', {
+	src: 'mp3/1.mp3'
+});
 </script>
