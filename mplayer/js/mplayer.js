@@ -229,13 +229,13 @@
     };
     proto.bindHTML5 = function () {
         for (var i = 0; i < bindEventList.length; i++) {
-            let name = bindEventList[i];
+            var name = bindEventList[i];
             this.audio.addEventListener(name, this, false);
         }
     };
     proto.unbindHTML5 = function () {
         for (var i = 0; i < bindEventList.length; i++) {
-            let name = bindEventList[i];
+            var name = bindEventList[i];
             this.audio.removeEventListener(name, this, false);
         }
     };
@@ -284,9 +284,10 @@
         var type = e.type.charAt(0).toUpperCase() + e.type.substr(1);
         var methodsName = 'handle' + type;
         if (typeof this[methodsName] === 'function') {
+            // LOG('Handle Event:' + methodsName);
             this[methodsName](e);
         } else {
-            LOG('Handle Event:' + methodsName);
+            // LOG('Unhandled Event:' + methodsName);
         }
     };
     proto.getElem = function (el) {
