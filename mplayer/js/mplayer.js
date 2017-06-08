@@ -80,6 +80,16 @@
         return num;
     };
 
+    var getTimeHtml = function (time) {
+        if (!time) {
+            return '00:00';
+        }
+        var minute = Math.floor(time / 60);
+        var second = Math.floor(time % 60);
+        var html = padZero(minute) + ':' + padZero(second);
+        return html;
+    };
+
     var bindEventList = [
         'loadstart', 'progress', 'error',
         'canplaythrough', 'canplay',
@@ -110,13 +120,15 @@
      * 播放
      */
     proto.play = function () {
-        
+        this.audio.play();
+        this.changeState('playing');
     };
     /**
      * 暂停
      */
     proto.pause = function () {
-
+        this.audio.pause();
+        this.changeState('paused');
     };
     proto.dispose = function () {
         if (this.audio) {
@@ -130,7 +142,7 @@
      * 初始化，生成HTML，绑定事件
      */
     proto.init = function () {
-        this.status = 'init';
+        this.changeState('init');
         this.$elem.addClass(holderClassName);
         this.$elem.html(
             getAudioHtml(this.options) + 
@@ -161,14 +173,27 @@
         this.$elem.off('click', '.play');
         this.$elem.off('click', '.pause');
     };
-    proto.renderDuration = function () {
-        var total = this.audio.duration;
-        var minute = Math.floor(total / 60);
-        var second = Math.floor(total % 60);
-        var html = padZero(minute) + ':' + padZero(second);
-        this.$duration.html(html);
+    proto.changeState = function (status) {
+        if (this.status) {
+            this.$elem.removeClass(this.status);
+        }
+        this.status = status;
+        this.$elem.addClass(status);
     };
-    proto.renderProgress = function (percent) {
+    proto.renderDuration = function () {
+        this.$playedTime.html(getTimeHtml(this.audio.currentTime));
+        this.$duration.html(getTimeHtml(this.audio.duration));
+    };
+    proto.renderCurrentProgress = function () {
+        this.renderDuration();
+        var n = parseInt(
+            (100 * this.audio.currentTime) / this.audio.duration,
+            10
+        );
+        this.$progressBar.css('width', n + '%');
+    };
+
+    proto.renderLoaded = function (percent) {
         this.$loadedBar.css('width', percent + '%');
     };
     proto.bindHTML5 = function () {
@@ -184,21 +209,21 @@
         }
     };
     proto.handleLoadstart = function (e) {
-        this.$elem.addClass('loading');
-        this.status = 'loading';
+        this.changeState('loading');
     };
     proto.handleCanplay = function (e) {
-        this.$elem.removeClass('loading');
-        this.status = 'canplay';
+        this.changeState('canplay');
         this.renderDuration();
-        this.renderProgress(100);
+        this.renderLoaded(100);
+    };
+    proto.handleTimeupdate = function (e) {
+        this.renderCurrentProgress();
     };
     proto.handleProgress = function (e) {
     };
     proto.handleError = function (e) {
-        this.$elem.addClass('error');
+        this.changeState('error');
         this.$errmsg.html('加载失败: ' + this.options.src);
-        this.status = 'error';
     };
     proto.handleEvent = function (e) {
         var eventName = 'handle-' + e.type.toLowerCase();
