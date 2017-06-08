@@ -2,16 +2,21 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>audiojs</title>
+    <title>mplayer</title>
     <link rel="stylesheet" href="audiojs/audio.css">
 </head>
 <body>
-    <audio src="mp3/1.mp3" autoplay preload="auto"></audio>
+    <div id="music"></div>
 </body>
 </html>
-<script src="audiojs/audio.js"></script>
+<script src="js/devtest.js"></script>
+<script src="js/jquery-1.8.3.min.js"></script>
+<script src="js/mplayer.js"></script>
 <script>
-audiojs.events.ready(function() {
-  audiojs.createAll();
+var src = 'mp3/1.mp3';
+var p = new MPlayer('music', {
+	src: src,
+	autoPlay: true,
+	loop: false
 });
 </script>

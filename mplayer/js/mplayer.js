@@ -25,6 +25,31 @@
         var e = document.createElement('audio');
         return (typeof e.canPlayType !== 'undefined');
     })();
+    var nt = navigator;
+    var hasFlash = function () {
+        var p = nt.plugins || {};
+        if (p.length && p['Shockwave Flash']) {
+            return true;
+        }
+        var m = nt.mimeTypes || {};
+        if (m.length) {
+            var mimeType = m['application/x-shockwave-flash'];
+            return (mimeType && mimeType.enabledPlugin);
+        }
+
+        try {
+            var ax = new ActiveXObject('ShockwaveFlash.ShockwaveFlash');
+            return true;
+        } catch (e) {}
+
+        return false;
+    };
+
+    var getSwf = function (name) {
+        var swf = document[name] || window[name] || [];
+        return swf.length > 1 ? swf[swf.length - 1] : swf;
+    };
+
     var holderClassName = 'audiojs';
     var className = {
         playBtn: 'play',
@@ -44,6 +69,13 @@
         }
         jClassName['.' + p] = className[p];
     }
+    var getUniqueId = (function () {
+        var i = 1000;
+        return function () {
+            var r = parseInt(Math.random() * 100000, 10);
+            return 'mplayer_' + (++i) + r;
+        };
+    })();
     var getHolderHtml = function () {
         return [
             '<div class="play-pause">',
@@ -64,12 +96,46 @@
             '<div class="' + className.errmsg + '"></div>'
         ].join('');
     };
-    var getAudioHtml = function (options) {
-        var src = options.src || '';
+    var getFlashHtml = function (m) {
+        var style = 'position: absolute; left: -1px;';
+        var size = 'width="1" height="1"';
+        var name = 'name="${id}"';
+        var v = "${path}?playerInstance=mPlayerInstances['${id}']&datetime=${datetime}";
+        var objectAttrs = [
+            'classid="clsid:D27CDB6E-AE6D-11cf-96B8-444553540000"',
+            'id="${id}"',
+            'style="' + style + '"',
+            name,
+            size,
+        ].join(' ');
+        var embedAttrs = [
+            name, size,
+            'src="' + v + '"',
+            'allowscriptaccess="always"'
+        ].join(' ');
+        var str = [
+            '<object ' + objectAttrs + '>',
+                '<param name="movie" value="' + v + '">',
+                '<param name="allowscriptaccess" value="always">',
+                '<embed ' + embedAttrs + '>',
+            '</object>'
+        ].join('');
+        var path = m.options.swfPath || 'swf/mplayer.swf';
+        str = str.replace(/\${id}/g, m.id);
+        str = str.replace(/\${path}/g, path);
+        str = str.replace(/\${datetime}/g, (+new Date + Math.random()));
+        return str;
+    };
+
+    var getAudioHtml = function (m) {
+        var src = m.options.src || '';
         if (HTML5Supported) {
             return [
                 '<audio preload="auto" src="' + src + '" ></audio>'
             ].join('');
+        }
+        if (hasFlash()) {
+            return getFlashHtml(m);
         }
         return '';
     };
@@ -99,7 +165,8 @@
         'play', 'pause', 'ended',
         'timeupdate'
     ];
-
+    var instances = {};
+    window.mPlayerInstances = instances;
     function Player(elem, options) {
         options = options || {};
         this.$elem = this.getElem(elem);
@@ -107,6 +174,8 @@
             return;
         }
         this.options = options;
+        this.id = getUniqueId();
+        instances[this.id] = this;
         this.init();
     }
 
@@ -116,28 +185,53 @@
      * 加载歌曲
      * @param  {string} url
      */
-    proto.load = function (url) {
+    proto.reload = function (url) {
         this.options.src = url;
-        this.audio.setAttribute('src', url);
+        this.dispose();
+        this.init();
     };
     /**
      * 播放
      */
     proto.play = function () {
-        this.audio.play();
+        // 没有获取到时长
+        if (!this.duration) {
+            return false;
+        }
+        // 状态不对
+        if (this.status === 'init' || this.status === 'error') {
+            return false;
+        }
+
+        if (this.audio) {
+            this.audio.play();
+        } else if (this.swf) {
+            this.handlePlay();
+            this.swf.pplay();
+        }
     };
     /**
      * 暂停
      */
     proto.pause = function () {
-        this.audio.pause();
+        if (this.audio) {
+            this.audio.pause();
+        } else if (this.swf) {
+            this.handlePause();
+            this.swf.ppause();
+        }
     };
     /**
      * 跳
      */
     proto.skipTo = function (percent) {
-        var t = this.audio.duration * percent;
-        this.audio.currentTime = t;
+        var t = this.duration * percent;
+        if (this.audio) {
+            this.audio.currentTime = t;
+        } else if (this.swf) {
+            this.swf.skipTo(percent);
+            this.renderCurrentProgress(percent);
+        }
     };
     /**
      * 销毁
@@ -164,23 +258,31 @@
      * 初始化，生成HTML，绑定事件
      */
     proto.init = function () {
+        this.duration = 0;
         this.changeState('init');
         this.$elem.addClass(holderClassName);
         this.$elem.html(
-            getAudioHtml(this.options) + 
+            getAudioHtml(this) + 
             getHolderHtml()
         );
+        this.bindEvents();
+
         // define children 
         for (var i in className) {
             this['$' + i] = this.$elem.find('.' + className[i]); 
         }
 
         // define audio element
-        this.audio = this.$elem.children('audio')[0];
-        if (this.audio) {
+        var html5Audio = this.$elem.children('audio')[0];
+        if (html5Audio) {
+            this.audio = html5Audio;
             this.bindHTML5();
+        } else if (hasFlash()) {
+            var swf = getSwf(this.id);
+            if (swf) {
+                this.swf = swf;
+            }
         }
-        this.bindEvents();
     };
     proto.bindEvents = function () {
         var self = this;
@@ -211,16 +313,20 @@
         this.status = status;
         this.$elem.addClass(status);
     };
-    proto.renderDuration = function () {
-        this.$playedTime.html(getTimeHtml(this.audio.currentTime));
-        this.$duration.html(getTimeHtml(this.audio.duration));
+    proto.renderPlayed = function (p) {
+        if (this.audio) {
+            this.$playedTime.html(getTimeHtml(this.audio.currentTime));
+        } else if (p !== undefined) {
+            var t = Math.round(this.duration * p);
+            this.$playedTime.html(getTimeHtml(t));
+        }
     };
-    proto.renderCurrentProgress = function () {
-        this.renderDuration();
-        var n = parseInt(
-            (100 * this.audio.currentTime) / this.audio.duration,
-            10
-        );
+    proto.renderDuration = function () {
+        this.$duration.html(getTimeHtml(this.duration));
+    };
+    proto.renderCurrentProgress = function (p) {
+        this.renderPlayed(p);
+        var n = Math.round(p * 100);
         this.$progressBar.css('width', n + '%');
     };
 
@@ -243,14 +349,17 @@
         this.changeState('loading');
     };
     proto.handleCanplay = function (e) {
+        if (this.audio && this.audio.duration) {
+            this.duration = this.audio.duration;
+        }
+        this.$elem.removeClass('loading');
+        this.renderDuration(0);
+        this.renderLoaded(100);
         if (this.status === 'loading') {
             if (this.options.autoPlay) {
                 this.play();
             }
         }
-        this.$elem.removeClass('loading');
-        this.renderDuration();
-        this.renderLoaded(100);
     };
     proto.handlePlay = function (e) {
         this.changeState('playing');
@@ -259,11 +368,14 @@
         this.changeState('paused');
     };
     proto.handleTimeupdate = function (e) {
-        this.renderCurrentProgress();
+        var p = (this.audio.currentTime) / this.duration;
+        this.renderCurrentProgress(p);
     };
     proto.handleEnded = function (e) {
         this.skipTo(0);
+        this.pause();
         if (this.options.loop) {
+
             this.delay(function () {
                 this.play();
             }, 1000);
@@ -290,6 +402,45 @@
             // LOG('Unhandled Event:' + methodsName);
         }
     };
+
+    /**
+     * The below methods would be called by Flash
+     */
+    proto.loadStarted = function () {
+        if (this.options.src) {
+            this.swf.init(this.options.src);
+        }
+    };
+    proto.loadProgress = function (percent, duration) {
+        // LOG('loadProgress:' + percent);
+        this.duration = duration;
+        // 显示时长
+        this.renderDuration();
+        // 显示加载进度
+        var p = Math.round(percent * 100);
+        this.renderLoaded(p);
+        if (p >= 100) {
+            this.changeState('canplay');
+            if (this.options.autoPlay) {
+                this.play();
+            }
+        }
+    };
+    proto.updatePlayhead = function (percent) {
+        this.renderCurrentProgress(percent);
+    };
+    proto.loadError = function () {
+        this.handleError();
+        // LOG('[Flash] error');
+    };
+    proto.trackEnded = function () {
+        this.handleEnded();
+    };
+    proto.load = function () {
+        LOG('[Flash] load');
+    };
+
+    // get the HTML Element
     proto.getElem = function (el) {
         if (!el) {
             return null;
