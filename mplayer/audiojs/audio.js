@@ -42,7 +42,7 @@
 			loop: false,
 			preload: true,
 			imageLocation: path + 'player-graphics.gif',
-			retinaImageLocation: path + 'player-graphics@2x.gif',
+			retinaImageLocation: path + 'player-graphics.gif',
 			swfLocation: path + 'audiojs.swf',
 			useFlash: (function() {
 				var a = document.createElement('audio');
