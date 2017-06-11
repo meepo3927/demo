@@ -419,7 +419,8 @@
         // 显示加载进度
         var p = Math.round(percent * 100);
         this.renderLoaded(p);
-        if (p >= 100) {
+        if (p >= 100 && this.status === 'init') {
+
             this.changeState('canplay');
             if (this.options.autoPlay) {
                 this.play();
